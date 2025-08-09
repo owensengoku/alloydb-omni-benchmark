@@ -87,6 +87,55 @@ SHOW google_columnar_engine.memory_size_in_mb;
 SHOW google_columnar_engine.enable_auto_columnarization;
 ```
 
+## Query
+
+### Shipping
+```
+SET google_columnar_engine.enable_columnar_scan=off;
+SELECT
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+	when o_orderpriority <> '1-URGENT'
+		and o_orderpriority <> '2-HIGH'
+		then 1
+	else 0
+		end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('AIR', 'REG AIR')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1995-01-01'
+	and l_receiptdate < date '1995-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode
+LIMIT 3;
+```
+
+### Disount
+```
+SET google_columnar_engine.enable_columnar_scan=off;
+
+SELECT l_discount,
+TO_CHAR(SUM(l_extendedprice), '999,999,999,999.00') AS lineItemTotal,
+TO_CHAR(SUM(o_totalprice), '999,999,999,999.00') AS orderTotal
+FROM orders
+JOIN lineitem ON l_orderkey = o_orderkey
+WHERE l_discount IN (.01, .02)
+AND l_shipdate BETWEEN '1993-11-26' AND '1993-11-28'
+GROUP BY l_discount;
+```
 
 
 
