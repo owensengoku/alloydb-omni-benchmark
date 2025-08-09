@@ -46,4 +46,47 @@ EOF
 ```
 
 
+## Columnar Engine 
+
+### Setup
+- Ref
+  - https://cloud.google.com/alloydb/omni/current/docs/columnar-engine/configure 
+```
+ALTER SYSTEM SET google_columnar_engine.enabled = 'on'
+ALTER SYSTEM SET google_columnar_engine.memory_size_in_mb=30720;
+ALTER SYSTEM SET google_columnar_engine.enable_vectorized_join = 'on';
+# 設定完成後記得重新啟動
+```
+
+### Setup Tables would be load in Columnar Engine
+```
+ALTER SYSTEM SET google_columnar_engine.relations='tpch.public.customer,tpch.public.lineitem,tpch.public.nation,tpch.public.orders,tpch.public.part,tpch.public.partsupp,tpch.public.region,tpch.public.supplier';
+```
+
+### Checking Columnar Engine Progress
+```
+select relation_name, block_count_in_cc, total_block_count, block_count_in_cc=total_block_count from g_columnar_relations order by 1;
+```
+
+### Manually trigger refresh Columnar Engine
+```
+SELECT google_columnar_engine_refresh(relation =>'tpch.public.customer');
+SELECT google_columnar_engine_refresh(relation =>'tpch.public.lineitem');
+SELECT google_columnar_engine_refresh(relation =>'tpch.public.nation');
+SELECT google_columnar_engine_refresh(relation =>'tpch.public.orders');
+SELECT google_columnar_engine_refresh(relation =>'tpch.public.part');
+SELECT google_columnar_engine_refresh(relation =>'tpch.public.partsupp');
+SELECT google_columnar_engine_refresh(relation =>'tpch.public.region');
+SELECT google_columnar_engine_refresh(relation =>'tpch.public.supplier');
+```
+
+### Show Columnar Engine Settings
+```
+SHOW google_columnar_engine.enabled;
+SHOW google_columnar_engine.memory_size_in_mb;
+SHOW google_columnar_engine.enable_auto_columnarization;
+```
+
+
+
 
